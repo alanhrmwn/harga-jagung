@@ -18,7 +18,7 @@ data.set_index('date', inplace=True)
 st.title('Forecasting Harga Jagung')
 
 # Slider untuk menentukan jumlah bulan yang akan diprediksi
-forecast_steps = st.slider('Jumlah Bulan Prediksi', 1, 36, 12)
+forecast_steps = st.slider('Jumlah Minggu Prediksi', 1, 50, 12)
 
 # Tombol "Prediksi"
 if st.button('Prediksi'):
@@ -43,7 +43,7 @@ if st.button('Prediksi'):
     # Tampilkan tabel hasil prediksi
     st.subheader('Tabel Hasil Prediksi')
     forecast_df = pd.DataFrame({
-    'Tanggal': pd.date_range(start=data.index[-1], periods=forecast_steps, freq='M'),
+    'Tanggal': pd.date_range(start=data.index[-1], periods=forecast_steps, freq='W'),
     'Prediksi': forecast
     })
     st.dataframe(forecast_df)
