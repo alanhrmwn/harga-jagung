@@ -10,7 +10,7 @@ model_file = 'forecast-corn-ar.sav'
 model = pickle.load(open(model_file, 'rb'))
 
 # Muat dataset AirPassengers.csv
-data_file = 'AirPassengers.csv'
+data_file = pd.read_csv("/content/corn2015-2017/corn2013-2017.txt",sep=',',header=None, names=['date','price'])'
 data = pd.read_csv(data_file)
 data['Month'] = pd.to_datetime(data['Month'])
 data.set_index('Month', inplace=True)
