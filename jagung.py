@@ -10,10 +10,9 @@ model_file = 'forecast-corn-ar.sav'
 model = pickle.load(open(model_file, 'rb'))
 
 # Muat dataset AirPassengers.csv
-data_file = pd.read_csv("corn2013-2017.txt",sep=',',header=None, names=['date','price'])
-data = pd.read_csv(data_file)
+data = pd.read_csv("corn2013-2017.txt", sep=',', header=None, names=['date', 'price'])
 data['date'] = pd.to_datetime(data['date'])
-data.set_index('Month', inplace=True)
+data.set_index('date', inplace=True)
 
 # Judul aplikasi
 st.title('ARIMA Forecasting App')
