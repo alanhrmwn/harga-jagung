@@ -28,19 +28,19 @@ Menjelaskan tujuan dari pernyataan masalah:
     - Sistem yang dibuat menggunakan dataset yang diambil dari kaggle dan diproses menggunakan 3 algoritma yang berbeda yang mana selanjutnya akan dipilih algoritma terbaik untuk dipakai didalam aplikasi tersebut
 
 ## Data Understanding
-Dataset yang diambil dari kaggle ini berisi 2 kolom yaitu tanggal dan jumlah penumpang pesawat. 
+Dataset yang diambil dari kaggle ini berisi 2 kolom yaitu tanggal dan harga jagung. 
 
 Dataset: [Weekly Corn Price](https://www.kaggle.com/datasets/nickwong64/corn2015-2017).
 
 Dalam proses data understanding ini tahapan pertama yang dilakukan adalah:
 1. import dataset
 
-dikarenakan dataset diambil dari kaggle maka kita perlu import token/API kaggle kita:
+dikarenakan dataset diambil dari kaggle maka kita perlu import token kaggle:
 ```
 from google.colab import files
 files.upload()
 ```
-lalu kita buat directory nya:
+lalu buat directory:
 ```
 !mkdir -p ~/.kaggle
 !cp kaggle.json ~/.kaggle/
@@ -57,7 +57,7 @@ setelah itu kita unzip file yang sudah di download:
 !unzip corn2015-2017.zip -d corn2015-2017
 !ls corn2015-2017
 ```
-jangan lupa untuk import library yang akan digunakan:
+import library yang akan digunakan:
 ```
 import pandas as pd
 import numpy as np
@@ -89,12 +89,11 @@ df.head()
 ```
 df.info()
 ```
-![Alt text](image.png)
 4. cek ukuran dataset
 ```
 df.shape
 ```
-(144, 2)
+(248, 2)
 dataset tersebut berisi 144 baris dengan 2 kolom
 5. Null Check
 ```
@@ -105,40 +104,36 @@ Tidak terdapat data yang kosong
 Selanjutnya uraikanlah seluruh variabel atau fitur pada data. Sebagai contoh:  
 
 ### Variabel-variabel pada Heart Failure Prediction Dataset adalah sebagai berikut:
-- Month : Tanggal (Tahun-Bulan) ```object```
-- #Passengers : Jumlah Penumpang Pesawat ```int64```
+- date : Tanggal (Tahun-Bulan) ```object```
+- price : harga jagung ```float64```
 
 ## Data Preparation
 Dikarenakan kolom Month memiliki tipe data object maka harus kita convert menjadi datetime:
 ```
-df['Month'] = pd.to_datetime(df['Month'])
+df['date'] = pd.to_datetime(df['date'])
 ```
 lalu kita set index dari kolom month untuk menjadi acuan dalam melakukan forecasting:
 ```
-df.set_index("Month",inplace=True)
+df.set_index("date",inplace=True)
 ```
 kita tampilkan juga bagaimana grafik dari perubahan jumlah penumpang pasawatnya:
 ```
-df['#Passengers'].plot(figsize=(12,5));
+df['price'].plot(figsize=(12,5));
 ```
-![Alt text](image-1.png)
-Ternyata dalam beberapa periode waktu penumpang pesawat naik pesat dan juga grafik tersebut menunjukan jika penumpang pesawat cenderung naik.
+![image](https://github.com/alanhrmwn/harga-jagung/assets/148874522/92be6692-09c4-40b2-ab37-9783b0a2396a)
+
+cek index max dan min:
+```
+df.index.min(), df.index.max()
+```
+(Timestamp('2013-01-06 00:00:00', freq='W-SUN'),
+ Timestamp('2017-10-01 00:00:00', freq='W-SUN'))
 
 Selanjutnya kita bagi terlebih dahulu antara train dan test data:
 ```
-train = df.iloc[:100]
-test = df.iloc[101:]
+train = df.iloc[:170]
+test = df.iloc[171:]
 ```
-
-Setelah itu mari kita analisi dan memahami komponen-komponen utama dalam data deret waktu, yaitu tren, musiman, dan komponen residu (error)
-```
-decompose_add = seasonal_decompose(df['#Passengers'])
-decompose_add.plot()
-```
-![Alt text](image-2.png)
-
-Grafik ini berfungsi untuk mencerminkan perubahan jangka panjang atau kecenderungan dalam data. Dalam grafik ini dapat dilihat jika terdapat perubahan data yang cenderung naik.
-
 Sekarang mari kita lihat selisih antara setiap dua poin data berturut-turut dalam sebuah rangkaian data deret waktu (time series):
 ```
 diff_df = df.diff()
@@ -160,31 +155,34 @@ p_value = result[1]
 print(f'ADF Statistic: {adf_statistic}')
 print(f'p-value: {p_value}')
 ```
+ADF Statistic: -13.496765258501243<br>
+p-value: 3.0312210481240657e-25
+
 Selanjutnya kita cek korelasi dari deret waktunya:
 ```
 plot_acf(diff_df)
 plot_pacf(diff_df)
 ```
-![Alt text](image-3.png)
-![Alt text](image-4.png)
+![image](https://github.com/alanhrmwn/harga-jagung/assets/148874522/4064193e-26ce-4399-b14b-61f783f61504)
 
 ## Modeling
 Ditahap modeling ini kita akan menggunakan 3 algoritma yang mana akan kita bandingkan algoritma terbaik yang selanjutnya akan dipakai untuk aplikasi tersebut.
 
-kita akan coba untuk memprediksi 43 bulan kedepan:
+kita akan coba untuk memprediksi 77 minggu kedepan:
 
   ### Single Exponential Smoothing
 ```
 single_exp = SimpleExpSmoothing(train).fit()
 single_exp_train_pred = single_exp.fittedvalues
-single_exp_test_pred = single_exp.forecast(43)
+single_exp_test_pred = single_exp.forecast(77)
 ```
 ```
-train['#Passengers'].plot(style='--', color='gray', legend=True, label='train')
-test['#Passengers'].plot(style='--', color='r', legend=True, label='test')
+train['price'].plot(style='--', color='gray', legend=True, label='train')
+test['price'].plot(style='--', color='r', legend=True, label='test')
 single_exp_test_pred.plot(color='b', legend=True, label='Prediction')
 ```
-![Alt text](image-5.png)
+![image](https://github.com/alanhrmwn/harga-jagung/assets/148874522/56fb96a5-1465-43b2-9940-5c9b245e3530)
+
 
 ```
 Train_RMSE_SES = mean_squared_error(train, single_exp_train_pred)**0.5
@@ -197,23 +195,24 @@ print('Test RMSE :', Test_RMSE_SES)
 print('Train MAPE :', Train_MAPE_SES)
 print('Test MAPE :', Test_MAPE_SES)
 ```
-Train RMSE : 23.47083303956671
-Test RMSE : 106.96706722437959
-Train MAPE : 0.08532342002218128
-Test MAPE : 0.17254543771244724
+Train RMSE : 0.16140010141419225<br>
+Test RMSE : 0.41554115341252534<br>
+Train MAPE : 0.018756005557876605<br>
+Test MAPE : 0.09890883033731582<br>
 
   ## Double Exponential Smoothing
 ```
 double_exp = ExponentialSmoothing(train, trend=None, initialization_method='heuristic', seasonal='add', seasonal_periods=29, damped_trend=False).fit()
 double_exp_train_pred = double_exp.fittedvalues
-double_exp_test_pred = double_exp.forecast(43)
+double_exp_test_pred = double_exp.forecast(77)
 ```
 ```
-train['#Passengers'].plot(style='--', color='gray', legend=True, label='train')
-test['#Passengers'].plot(style='--', color='r', legend=True, label='test')
+train['price'].plot(style='--', color='gray', legend=True, label='train')
+test['price'].plot(style='--', color='r', legend=True, label='test')
 double_exp_test_pred.plot(color='b', legend=True, label='Prediction')
 ```
-![Alt text](image-6.png)
+![image](https://github.com/alanhrmwn/harga-jagung/assets/148874522/6b55ab9f-d1de-46f0-97b3-78c1d8bab8df)
+
 
 ```
 Train_RMSE_DES = mean_squared_error(train, double_exp_train_pred)**0.5
@@ -226,23 +225,24 @@ print('Test RMSE :', Test_RMSE_DES)
 print('Train MAPE :', Train_MAPE_DES)
 print('Test MAPE :', Test_MAPE_DES)
 ```
-Train RMSE : 23.283893193337274
-Test RMSE : 94.57214255933388
-Train MAPE : 0.07900374086543273
-Test MAPE : 0.15438871066201712
+Train RMSE : 0.16205098371914398<br>
+Test RMSE : 0.4488396674833522<br>
+Train MAPE : 0.020458390748657466<br>
+Test MAPE : 0.1016007247389691<br>
 
   ## ARIMA
 ```
 ar = ARIMA(train, order=(15,1,15)).fit()
 ar_train_pred = ar.fittedvalues
-ar_test_pred = ar.forecast(43)
+ar_test_pred = ar.forecast(77)
 ```
 ```
-train['#Passengers'].plot(style='--', color='gray', legend=True, label='train')
-test['#Passengers'].plot(style='--', color='r', legend=True, label='test')
+train['price'].plot(style='--', color='gray', legend=True, label='train')
+test['price'].plot(style='--', color='r', legend=True, label='test')
 ar_test_pred.plot(color='b', legend=True, label='Prediction')
 ```
-![Alt text](image-7.png)
+![image](https://github.com/alanhrmwn/harga-jagung/assets/148874522/2232e70a-cb6a-4467-a23f-936fd4f2861d)
+
 ```
 Train_RMSE_AR = mean_squared_error(train, ar_train_pred)**0.5
 Test_RMSE_AR = mean_squared_error(test, ar_test_pred)**0.5
@@ -254,10 +254,10 @@ print('Test RMSE :', Test_RMSE_AR)
 print('Train MAPE :', Train_MAPE_AR)
 print('Test MAPE :', Test_MAPE_AR)
 ```
-Train RMSE : 14.20071832771583
-Test RMSE : 45.285402548094446
-Train MAPE : 0.04423659596567478
-Test MAPE : 0.0929043309516595
+Train RMSE : 0.6153128426935569<br>
+Test RMSE : 0.38981683508614867<br>
+Train MAPE : 0.02442687290853558<br>
+Test MAPE : 0.09223393707251747<br>
 
 Selanjutnya mari kita evaluasi 3 algoritma tersebut
 
@@ -275,10 +275,11 @@ comparision_df.set_index('Model', inplace=True)
 ```
 comparision_df.sort_values(by='RMSE')
 ```
-![Alt text](image-8.png)
+<img width="222" alt="image" src="https://github.com/alanhrmwn/harga-jagung/assets/148874522/1c9bdb4e-33c6-4f66-8061-0aeac188521e">
+
 
 dapat dilihat jika nilai RMSE dan MAPE ada pada algoritma ARIMA, maka dari itu algoritma yang akan dipakai adalah algoritma ARIMA
 
 ## Deployment
-Link Aplikasi: [ARIMA Forecasting App](https://forecast-ar.streamlit.app/)
+Link Aplikasi: [Forecasting harga jagung](https://forecast-jagung.streamlit.app/)
 
