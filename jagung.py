@@ -9,13 +9,13 @@ from statsmodels.tsa.arima_model import ARIMA
 model_file = 'forecast-corn-ar.sav'
 model = pickle.load(open(model_file, 'rb'))
 
-# Muat dataset AirPassengers.csv
+# Muat dataset
 data = pd.read_csv("corn2013-2017.txt", sep=',', header=None, names=['date', 'price'])
 data['date'] = pd.to_datetime(data['date'])
 data.set_index('date', inplace=True)
 
 # Judul aplikasi
-st.title('ARIMA Forecasting App')
+st.title('Forecasting Harga Jagung')
 
 # Slider untuk menentukan jumlah bulan yang akan diprediksi
 forecast_steps = st.slider('Jumlah Bulan Prediksi', 1, 36, 12)
@@ -36,7 +36,7 @@ if st.button('Prediksi'):
     # Tampilkan grafik data asli dengan hasil prediksi
     st.subheader('Grafik Data Asli dengan Hasil Prediksi')
     fig, ax = plt.subplots()
-    data['#Passengers'].plot(style='--', color='gray', legend=True, label='Data Asli', ax=ax)
+    data['price'].plot(style='--', color='gray', legend=True, label='Data Asli', ax=ax)
     forecast.plot(color='b', legend=True, label='Prediksi', ax=ax)
     st.pyplot(fig)
     
